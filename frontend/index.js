@@ -1,4 +1,8 @@
 import { backend } from 'declarations/backend';
+import { AuthClient } from "@dfinity/auth-client";
+import { HttpAgent } from "@dfinity/agent";
+
+let stripePromise;
 
 document.addEventListener('DOMContentLoaded', () => {
     lucide.createIcons();
@@ -243,10 +247,19 @@ function addComponentToCanvas(componentType, x, y) {
             component.innerHTML = `
                 <div class="text-center">
                     <h3 class="text-lg font-semibold mb-2">Stripe Payment</h3>
-                    <button id="stripe-setup" class="bg-blue-500 text-white px-4 py-2 rounded">Set up Stripe</button>
+                    <form id="payment-form" class="mt-4">
+                        <div id="payment-element" class="mb-4">
+                            <!-- Stripe Elements Placeholder -->
+                        </div>
+                        <button id="submit" class="bg-blue-500 text-white px-4 py-2 rounded">
+                            <div class="spinner hidden" id="spinner"></div>
+                            <span id="button-text">Pay now</span>
+                        </button>
+                        <div id="payment-message" class="hidden"></div>
+                    </form>
                 </div>
             `;
-            component.querySelector('#stripe-setup').addEventListener('click', setupStripePayment);
+            initializeStripe(component);
             break;
         default:
             component.textContent = componentType;
@@ -332,67 +345,64 @@ function initMenuComponent(component) {
     });
 }
 
-async function setupStripePayment() {
-    const stripePublishableKey = prompt('Enter your Stripe Publishable Key:');
-    if (!stripePublishableKey) return;
-
-    try {
-        const response = await backend.setupStripePayment(stripePublishableKey);
-        if (response.success) {
-            alert('Stripe payment setup successful!');
-            updateStripeComponent(this.closest('.component'), stripePublishableKey);
-        } else {
-            alert('Failed to set up Stripe payment. Please try again.');
-        }
-    } catch (error) {
-        console.error('Error setting up Stripe payment:', error);
-        alert('An error occurred while setting up Stripe payment. Please try again.');
+async function initializeStripe(component) {
+    if (!stripePromise) {
+        const publishableKey = await backend.getStripePublishableKey();
+        stripePromise = loadStripe(publishableKey);
     }
-}
 
-function updateStripeComponent(component, publishableKey) {
-    component.innerHTML = `
-        <div class="text-center">
-            <h3 class="text-lg font-semibold mb-2">Stripe Payment</h3>
-            <p class="text-sm text-gray-600 mb-4">Stripe is set up with key: ${publishableKey.substr(0, 8)}...</p>
-            <div id="stripe-payment-form">
-                <div id="card-element" class="mb-4"></div>
-                <button id="submit-payment" class="bg-blue-500 text-white px-4 py-2 rounded">Pay Now</button>
-            </div>
-        </div>
-    `;
-
-    // Load Stripe.js
-    const script = document.createElement('script');
-    script.src = 'https://js.stripe.com/v3/';
-    script.onload = () => initializeStripe(publishableKey, component);
-    document.head.appendChild(script);
-}
-
-function initializeStripe(publishableKey, component) {
-    const stripe = Stripe(publishableKey);
+    const stripe = await stripePromise;
     const elements = stripe.elements();
-    const cardElement = elements.create('card');
-    cardElement.mount(component.querySelector('#card-element'));
 
-    const form = component.querySelector('#stripe-payment-form');
-    form.addEventListener('submit', async (event) => {
-        event.preventDefault();
-        const {token, error} = await stripe.createToken(cardElement);
+    const paymentElement = elements.create("payment");
+    paymentElement.mount("#payment-element");
 
-        if (error) {
-            console.error(error);
-            alert('Payment failed: ' + error.message);
-        } else {
-            // Send the token to your server
-            const response = await backend.processStripePayment(token.id);
-            if (response.success) {
-                alert('Payment successful!');
-            } else {
-                alert('Payment failed. Please try again.');
-            }
-        }
+    const form = component.querySelector("#payment-form");
+    form.addEventListener("submit", handleSubmit);
+}
+
+async function handleSubmit(e) {
+    e.preventDefault();
+    setLoading(true);
+
+    const stripe = await stripePromise;
+    const { error } = await stripe.confirmPayment({
+        elements,
+        confirmParams: {
+            return_url: `${window.location.origin}/completion`,
+        },
     });
+
+    if (error.type === "card_error" || error.type === "validation_error") {
+        showMessage(error.message);
+    } else {
+        showMessage("An unexpected error occurred.");
+    }
+
+    setLoading(false);
+}
+
+function showMessage(messageText) {
+    const messageContainer = document.querySelector("#payment-message");
+    messageContainer.classList.remove("hidden");
+    messageContainer.textContent = messageText;
+
+    setTimeout(function () {
+        messageContainer.classList.add("hidden");
+        messageContainer.textContent = "";
+    }, 4000);
+}
+
+function setLoading(isLoading) {
+    if (isLoading) {
+        document.querySelector("#submit").disabled = true;
+        document.querySelector("#spinner").classList.remove("hidden");
+        document.querySelector("#button-text").classList.add("hidden");
+    } else {
+        document.querySelector("#submit").disabled = false;
+        document.querySelector("#spinner").classList.add("hidden");
+        document.querySelector("#button-text").classList.remove("hidden");
+    }
 }
 
 let isDragging = false;
@@ -506,15 +516,6 @@ function showProperties(element) {
         `;
     }
 
-    if (componentType === 'Stripe Payment') {
-        propertiesHTML += `
-            <div>
-                <label class="text-sm font-medium text-slate-700">Stripe Publishable Key</label>
-                <input type="text" id="stripe-key-input" class="mt-1 w-full px-3 py-2 bg-slate-50 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500" value="${element.dataset.stripeKey || ''}">
-            </div>
-        `;
-    }
-
     propertiesHTML += `</div>`;
     propertiesPanel.innerHTML = propertiesHTML;
 
@@ -537,13 +538,6 @@ function showProperties(element) {
     if (componentType === 'Button') {
         document.getElementById('button-url-input').addEventListener('change', (e) => {
             selectedComponent.dataset.url = e.target.value;
-        });
-    }
-
-    if (componentType === 'Stripe Payment') {
-        document.getElementById('stripe-key-input').addEventListener('change', (e) => {
-            selectedComponent.dataset.stripeKey = e.target.value;
-            updateStripeComponent(selectedComponent, e.target.value);
         });
     }
 }
@@ -605,3 +599,8 @@ document.getElementById('canvas').addEventListener('click', () => {
         showProperties(null);
     }
 });
+
+// Load Stripe.js
+const script = document.createElement('script');
+script.src = 'https://js.stripe.com/v3/';
+document.head.appendChild(script);

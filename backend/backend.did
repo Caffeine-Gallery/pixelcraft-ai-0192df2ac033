@@ -1,9 +1,11 @@
 service : {
+  createPaymentIntent: (nat, text) -> (text);
   getAIAssistance: (text) -> (text);
+  getPaymentIntentStatus: (text) -> (opt text) query;
   getStripePublishableKey: () -> (text) query;
+  handleStripeWebhook: (blob, text) -> (text);
   loadWebsite: () -> (text);
-  processStripePayment: (text) -> (record {success: bool;});
   publishWebsite: () -> (text);
   saveWebsite: (text) -> ();
-  setupStripePayment: (text) -> (record {success: bool;});
+  setupStripe: (text, text, text) -> ();
 }

@@ -3,13 +3,15 @@ import type { ActorMethod } from '@dfinity/agent';
 import type { IDL } from '@dfinity/candid';
 
 export interface _SERVICE {
+  'createPaymentIntent' : ActorMethod<[bigint, string], string>,
   'getAIAssistance' : ActorMethod<[string], string>,
+  'getPaymentIntentStatus' : ActorMethod<[string], [] | [string]>,
   'getStripePublishableKey' : ActorMethod<[], string>,
+  'handleStripeWebhook' : ActorMethod<[Uint8Array | number[], string], string>,
   'loadWebsite' : ActorMethod<[], string>,
-  'processStripePayment' : ActorMethod<[string], { 'success' : boolean }>,
   'publishWebsite' : ActorMethod<[], string>,
   'saveWebsite' : ActorMethod<[string], undefined>,
-  'setupStripePayment' : ActorMethod<[string], { 'success' : boolean }>,
+  'setupStripe' : ActorMethod<[string, string, string], undefined>,
 }
 export declare const idlFactory: IDL.InterfaceFactory;
 export declare const init: (args: { IDL: typeof IDL }) => IDL.Type[];

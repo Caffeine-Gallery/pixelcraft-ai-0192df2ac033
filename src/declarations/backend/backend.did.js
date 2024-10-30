@@ -1,20 +1,22 @@
 export const idlFactory = ({ IDL }) => {
   return IDL.Service({
+    'createPaymentIntent' : IDL.Func([IDL.Nat, IDL.Text], [IDL.Text], []),
     'getAIAssistance' : IDL.Func([IDL.Text], [IDL.Text], []),
-    'getStripePublishableKey' : IDL.Func([], [IDL.Text], ['query']),
-    'loadWebsite' : IDL.Func([], [IDL.Text], []),
-    'processStripePayment' : IDL.Func(
+    'getPaymentIntentStatus' : IDL.Func(
         [IDL.Text],
-        [IDL.Record({ 'success' : IDL.Bool })],
+        [IDL.Opt(IDL.Text)],
+        ['query'],
+      ),
+    'getStripePublishableKey' : IDL.Func([], [IDL.Text], ['query']),
+    'handleStripeWebhook' : IDL.Func(
+        [IDL.Vec(IDL.Nat8), IDL.Text],
+        [IDL.Text],
         [],
       ),
+    'loadWebsite' : IDL.Func([], [IDL.Text], []),
     'publishWebsite' : IDL.Func([], [IDL.Text], []),
     'saveWebsite' : IDL.Func([IDL.Text], [], []),
-    'setupStripePayment' : IDL.Func(
-        [IDL.Text],
-        [IDL.Record({ 'success' : IDL.Bool })],
-        [],
-      ),
+    'setupStripe' : IDL.Func([IDL.Text, IDL.Text, IDL.Text], [], []),
   });
 };
 export const init = ({ IDL }) => { return []; };
