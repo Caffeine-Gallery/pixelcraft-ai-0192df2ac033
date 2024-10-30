@@ -38,8 +38,14 @@ function getIconForComponent(component) {
     switch (component) {
         case 'Text': return 'type';
         case 'Image': return 'image';
-        case 'Layout': return 'layout';
-        case 'Grid': return 'grid';
+        case 'Button': return 'mouse-pointer-click';
+        case 'Form': return 'form-input';
+        case 'Gallery': return 'image-plus';
+        case 'Video': return 'video';
+        case 'Social': return 'share-2';
+        case 'Menu': return 'menu';
+        case 'Header': return 'heading-1';
+        case 'Footer': return 'footprints';
         default: return 'box';
     }
 }
@@ -125,17 +131,107 @@ function addComponentToCanvas(componentType, x, y) {
     component.className = 'absolute bg-white border border-slate-200 p-4 rounded-lg shadow-sm cursor-move component';
     component.style.left = `${x}px`;
     component.style.top = `${y}px`;
-    component.style.minWidth = '100px';
-    component.style.minHeight = '50px';
+    component.style.minWidth = '200px';
+    component.style.minHeight = '100px';
     
-    if (componentType === 'Text') {
-        const textElement = document.createElement('div');
-        textElement.contentEditable = true;
-        textElement.textContent = 'Edit this text';
-        textElement.className = 'outline-none';
-        component.appendChild(textElement);
-    } else {
-        component.textContent = componentType;
+    switch (componentType) {
+        case 'Header':
+            component.innerHTML = `
+                <h1 contenteditable="true" class="text-2xl font-bold">Header</h1>
+                <nav>
+                    <ul class="flex space-x-4">
+                        <li><a href="#" class="text-blue-600">Home</a></li>
+                        <li><a href="#" class="text-blue-600">About</a></li>
+                        <li><a href="#" class="text-blue-600">Contact</a></li>
+                    </ul>
+                </nav>
+            `;
+            break;
+        case 'Text':
+            component.innerHTML = `<p contenteditable="true" class="text-base">Edit this text</p>`;
+            break;
+        case 'Image':
+            component.innerHTML = `
+                <img src="https://via.placeholder.com/300x200" alt="Placeholder" class="max-w-full h-auto">
+                <input type="file" accept="image/*" class="mt-2">
+            `;
+            break;
+        case 'Button':
+            component.innerHTML = `<button class="bg-blue-500 text-white px-4 py-2 rounded">Click me</button>`;
+            break;
+        case 'Form':
+            component.innerHTML = `
+                <form>
+                    <div class="mb-4">
+                        <label class="block text-sm font-bold mb-2" for="name">Name</label>
+                        <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="name" type="text" placeholder="Name">
+                    </div>
+                    <div class="mb-4">
+                        <label class="block text-sm font-bold mb-2" for="email">Email</label>
+                        <input class="shadow appearance-none border rounded w-full py-2 px-3 text-gray-700 leading-tight focus:outline-none focus:shadow-outline" id="email" type="email" placeholder="Email">
+                    </div>
+                    <div class="flex items-center justify-between">
+                        <button class="bg-blue-500 hover:bg-blue-700 text-white font-bold py-2 px-4 rounded focus:outline-none focus:shadow-outline" type="button">
+                            Submit
+                        </button>
+                    </div>
+                </form>
+            `;
+            break;
+        case 'Gallery':
+            component.innerHTML = `
+                <div class="grid grid-cols-2 gap-4">
+                    <img src="https://via.placeholder.com/150" alt="Placeholder" class="w-full h-auto">
+                    <img src="https://via.placeholder.com/150" alt="Placeholder" class="w-full h-auto">
+                    <img src="https://via.placeholder.com/150" alt="Placeholder" class="w-full h-auto">
+                    <img src="https://via.placeholder.com/150" alt="Placeholder" class="w-full h-auto">
+                </div>
+            `;
+            break;
+        case 'Video':
+            component.innerHTML = `
+                <video width="320" height="240" controls>
+                    <source src="movie.mp4" type="video/mp4">
+                    Your browser does not support the video tag.
+                </video>
+            `;
+            break;
+        case 'Social':
+            component.innerHTML = `
+                <div class="flex space-x-4">
+                    <a href="#" class="text-blue-600"><i data-lucide="facebook"></i></a>
+                    <a href="#" class="text-blue-400"><i data-lucide="twitter"></i></a>
+                    <a href="#" class="text-pink-600"><i data-lucide="instagram"></i></a>
+                    <a href="#" class="text-blue-800"><i data-lucide="linkedin"></i></a>
+                </div>
+            `;
+            break;
+        case 'Menu':
+            component.innerHTML = `
+                <nav>
+                    <ul class="space-y-2">
+                        <li><a href="#" class="text-blue-600">Home</a></li>
+                        <li><a href="#" class="text-blue-600">Products</a></li>
+                        <li><a href="#" class="text-blue-600">About Us</a></li>
+                        <li><a href="#" class="text-blue-600">Contact</a></li>
+                    </ul>
+                </nav>
+            `;
+            break;
+        case 'Footer':
+            component.innerHTML = `
+                <footer class="text-center">
+                    <p>&copy; 2023 Your Company. All rights reserved.</p>
+                    <nav class="mt-4">
+                        <a href="#" class="text-blue-600 mx-2">Privacy Policy</a>
+                        <a href="#" class="text-blue-600 mx-2">Terms of Service</a>
+                        <a href="#" class="text-blue-600 mx-2">Contact Us</a>
+                    </nav>
+                </footer>
+            `;
+            break;
+        default:
+            component.textContent = componentType;
     }
 
     component.addEventListener('mousedown', startDragging);
@@ -143,13 +239,6 @@ function addComponentToCanvas(componentType, x, y) {
         e.stopPropagation();
         selectComponent(component);
     });
-
-    if (componentType === 'Text') {
-        component.addEventListener('dblclick', (e) => {
-            e.stopPropagation();
-            component.querySelector('div').focus();
-        });
-    }
 
     const resizer = document.createElement('div');
     resizer.className = 'absolute bottom-0 right-0 w-4 h-4 bg-blue-500 cursor-se-resize';
@@ -166,6 +255,7 @@ function addComponentToCanvas(componentType, x, y) {
     component.appendChild(deleteBtn);
 
     canvas.appendChild(component);
+    lucide.createIcons();
 }
 
 let isDragging = false;
