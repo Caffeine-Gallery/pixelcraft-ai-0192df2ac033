@@ -1,0 +1,11 @@
+type Result = 
+ variant {
+   err: text;
+   ok: text;
+ };
+service : {
+  getAIAssistance: (text) -> (text);
+  loadWebsite: () -> (Result) query;
+  publishWebsite: () -> (Result);
+  saveWebsite: (text) -> ();
+}
