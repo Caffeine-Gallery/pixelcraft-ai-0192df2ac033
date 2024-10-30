@@ -1,11 +1,9 @@
-type Result = 
- variant {
-   err: text;
-   ok: text;
- };
 service : {
   getAIAssistance: (text) -> (text);
-  loadWebsite: () -> (Result) query;
-  publishWebsite: () -> (Result);
+  getStripePublishableKey: () -> (text) query;
+  loadWebsite: () -> (text);
+  processStripePayment: (text) -> (record {success: bool;});
+  publishWebsite: () -> (text);
   saveWebsite: (text) -> ();
+  setupStripePayment: (text) -> (record {success: bool;});
 }
