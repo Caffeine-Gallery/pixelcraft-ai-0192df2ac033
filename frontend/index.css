@@ -37,3 +37,18 @@
     font-size: 1.2rem;
     pointer-events: none;
 }
+
+.component {
+    position: absolute;
+    cursor: move;
+    user-select: none;
+}
+
+.component:hover {
+    box-shadow: 0 0 0 2px #3b82f6;
+}
+
+.component.selected {
+    border-color: #3b82f6;
+    box-shadow: 0 0 0 2px #3b82f6;
+}

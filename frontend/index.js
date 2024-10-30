@@ -122,7 +122,7 @@ function initDragAndDrop() {
 function addComponentToCanvas(componentType, x, y) {
     const canvas = document.getElementById('canvas');
     const component = document.createElement('div');
-    component.className = 'absolute bg-white border border-slate-200 p-4 rounded-lg shadow-sm cursor-move';
+    component.className = 'absolute bg-white border border-slate-200 p-4 rounded-lg shadow-sm cursor-move component';
     component.style.left = `${x}px`;
     component.style.top = `${y}px`;
     component.style.minWidth = '100px';
@@ -144,10 +144,26 @@ function addComponentToCanvas(componentType, x, y) {
         selectComponent(component);
     });
 
+    if (componentType === 'Text') {
+        component.addEventListener('dblclick', (e) => {
+            e.stopPropagation();
+            component.querySelector('div').focus();
+        });
+    }
+
     const resizer = document.createElement('div');
     resizer.className = 'absolute bottom-0 right-0 w-4 h-4 bg-blue-500 cursor-se-resize';
     resizer.addEventListener('mousedown', startResizing);
     component.appendChild(resizer);
+
+    const deleteBtn = document.createElement('button');
+    deleteBtn.className = 'absolute top-0 right-0 -mt-2 -mr-2 bg-red-500 text-white rounded-full w-5 h-5 flex items-center justify-center text-xs';
+    deleteBtn.textContent = '×';
+    deleteBtn.addEventListener('click', (e) => {
+        e.stopPropagation();
+        canvas.removeChild(component);
+    });
+    component.appendChild(deleteBtn);
 
     canvas.appendChild(component);
 }
@@ -155,24 +171,25 @@ function addComponentToCanvas(componentType, x, y) {
 let isDragging = false;
 let isResizing = false;
 let selectedComponent = null;
-let startX, startY, startWidth, startHeight;
+let startX, startY, startLeft, startTop, startWidth, startHeight;
 
 function startDragging(e) {
-    if (e.target === selectedComponent) {
-        isDragging = true;
-        startX = e.clientX - selectedComponent.offsetLeft;
-        startY = e.clientY - selectedComponent.offsetTop;
-        document.addEventListener('mousemove', drag);
-        document.addEventListener('mouseup', stopDragging);
-    }
+    isDragging = true;
+    selectedComponent = e.target.closest('.component');
+    startX = e.clientX;
+    startY = e.clientY;
+    startLeft = parseInt(selectedComponent.style.left, 10);
+    startTop = parseInt(selectedComponent.style.top, 10);
+    document.addEventListener('mousemove', drag);
+    document.addEventListener('mouseup', stopDragging);
 }
 
 function drag(e) {
     if (isDragging && selectedComponent) {
         const canvas = document.getElementById('canvas');
         const canvasRect = canvas.getBoundingClientRect();
-        let newX = e.clientX - startX - canvasRect.left;
-        let newY = e.clientY - startY - canvasRect.top;
+        let newX = startLeft + e.clientX - startX;
+        let newY = startTop + e.clientY - startY;
 
         // Constrain to canvas boundaries
         newX = Math.max(0, Math.min(newX, canvasRect.width - selectedComponent.offsetWidth));
@@ -192,6 +209,7 @@ function stopDragging() {
 function startResizing(e) {
     e.stopPropagation();
     isResizing = true;
+    selectedComponent = e.target.closest('.component');
     startX = e.clientX;
     startY = e.clientY;
     startWidth = parseInt(document.defaultView.getComputedStyle(selectedComponent).width, 10);
