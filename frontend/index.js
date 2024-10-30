@@ -5,11 +5,7 @@ document.addEventListener('DOMContentLoaded', async () => {
   lucide.createIcons();
 
   // Stripe configuration
-  const stripeConfigBtn = document.createElement('button');
-  stripeConfigBtn.textContent = 'Configure Stripe';
-  stripeConfigBtn.classList.add('px-4', 'py-1.5', 'bg-green-600', 'text-white', 'rounded-lg', 'hover:bg-green-700', 'ml-2');
-  document.querySelector('.h-12.bg-white').appendChild(stripeConfigBtn);
-
+  const stripeConfigBtn = document.getElementById('stripe-config-btn');
   const stripeConfigModal = document.getElementById('stripe-config-modal');
   const stripeConfigForm = document.getElementById('stripe-config-form');
   const stripeConfigCancel = document.getElementById('stripe-config-cancel');
@@ -194,4 +190,7 @@ document.addEventListener('DOMContentLoaded', async () => {
 
   // Initialize with desktop mode
   setPreviewMode('desktop');
+
+  // Reinitialize Lucide icons after dynamic content is added
+  lucide.createIcons();
 });
