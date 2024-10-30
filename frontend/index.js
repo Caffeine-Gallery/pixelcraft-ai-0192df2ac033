@@ -133,6 +133,7 @@ function addComponentToCanvas(componentType, x, y) {
     component.style.top = `${y}px`;
     component.style.minWidth = '200px';
     component.style.minHeight = '100px';
+    component.dataset.componentType = componentType;
     
     switch (componentType) {
         case 'Header':
@@ -140,9 +141,9 @@ function addComponentToCanvas(componentType, x, y) {
                 <h1 contenteditable="true" class="text-2xl font-bold">Header</h1>
                 <nav>
                     <ul class="flex space-x-4">
-                        <li><a href="#" class="text-blue-600">Home</a></li>
-                        <li><a href="#" class="text-blue-600">About</a></li>
-                        <li><a href="#" class="text-blue-600">Contact</a></li>
+                        <li><a href="#" class="text-blue-600" contenteditable="true">Home</a></li>
+                        <li><a href="#" class="text-blue-600" contenteditable="true">About</a></li>
+                        <li><a href="#" class="text-blue-600" contenteditable="true">Contact</a></li>
                     </ul>
                 </nav>
             `;
@@ -157,7 +158,12 @@ function addComponentToCanvas(componentType, x, y) {
             `;
             break;
         case 'Button':
-            component.innerHTML = `<button class="bg-blue-500 text-white px-4 py-2 rounded">Click me</button>`;
+            component.innerHTML = `
+                <button class="bg-blue-500 text-white px-4 py-2 rounded">
+                    <span contenteditable="true">Click me</span>
+                </button>
+            `;
+            component.dataset.url = '#';
             break;
         case 'Form':
             component.innerHTML = `
@@ -198,34 +204,36 @@ function addComponentToCanvas(componentType, x, y) {
             break;
         case 'Social':
             component.innerHTML = `
-                <div class="flex space-x-4">
-                    <a href="#" class="text-blue-600"><i data-lucide="facebook"></i></a>
-                    <a href="#" class="text-blue-400"><i data-lucide="twitter"></i></a>
-                    <a href="#" class="text-pink-600"><i data-lucide="instagram"></i></a>
-                    <a href="#" class="text-blue-800"><i data-lucide="linkedin"></i></a>
+                <div class="flex space-x-4" id="social-icons">
+                    <a href="#" class="text-blue-600" data-platform="facebook"><i data-lucide="facebook"></i></a>
+                    <a href="#" class="text-blue-400" data-platform="twitter"><i data-lucide="twitter"></i></a>
+                    <a href="#" class="text-pink-600" data-platform="instagram"><i data-lucide="instagram"></i></a>
+                    <a href="#" class="text-red-600" data-platform="youtube"><i data-lucide="youtube"></i></a>
                 </div>
+                <button class="mt-2 bg-blue-500 text-white px-2 py-1 rounded text-sm" id="add-social">Add Social</button>
             `;
             break;
         case 'Menu':
             component.innerHTML = `
                 <nav>
-                    <ul class="space-y-2">
-                        <li><a href="#" class="text-blue-600">Home</a></li>
-                        <li><a href="#" class="text-blue-600">Products</a></li>
-                        <li><a href="#" class="text-blue-600">About Us</a></li>
-                        <li><a href="#" class="text-blue-600">Contact</a></li>
+                    <ul class="space-y-2" id="menu-items">
+                        <li><a href="#" class="text-blue-600" contenteditable="true">Home</a></li>
+                        <li><a href="#" class="text-blue-600" contenteditable="true">Products</a></li>
+                        <li><a href="#" class="text-blue-600" contenteditable="true">About Us</a></li>
+                        <li><a href="#" class="text-blue-600" contenteditable="true">Contact</a></li>
                     </ul>
                 </nav>
+                <button class="mt-2 bg-blue-500 text-white px-2 py-1 rounded text-sm" id="add-menu-item">Add Menu Item</button>
             `;
             break;
         case 'Footer':
             component.innerHTML = `
                 <footer class="text-center">
-                    <p>&copy; 2023 Your Company. All rights reserved.</p>
+                    <p contenteditable="true">&copy; 2023 Your Company. All rights reserved.</p>
                     <nav class="mt-4">
-                        <a href="#" class="text-blue-600 mx-2">Privacy Policy</a>
-                        <a href="#" class="text-blue-600 mx-2">Terms of Service</a>
-                        <a href="#" class="text-blue-600 mx-2">Contact Us</a>
+                        <a href="#" class="text-blue-600 mx-2" contenteditable="true">Privacy Policy</a>
+                        <a href="#" class="text-blue-600 mx-2" contenteditable="true">Terms of Service</a>
+                        <a href="#" class="text-blue-600 mx-2" contenteditable="true">Contact Us</a>
                     </nav>
                 </footer>
             `;
@@ -256,6 +264,62 @@ function addComponentToCanvas(componentType, x, y) {
 
     canvas.appendChild(component);
     lucide.createIcons();
+
+    if (componentType === 'Social') {
+        initSocialComponent(component);
+    } else if (componentType === 'Menu') {
+        initMenuComponent(component);
+    }
+}
+
+function initSocialComponent(component) {
+    const addSocialBtn = component.querySelector('#add-social');
+    const socialIcons = component.querySelector('#social-icons');
+
+    addSocialBtn.addEventListener('click', () => {
+        const platform = prompt('Enter social media platform (e.g., linkedin, github):');
+        if (platform) {
+            const link = document.createElement('a');
+            link.href = '#';
+            link.className = 'text-gray-600';
+            link.dataset.platform = platform;
+            link.innerHTML = `<i data-lucide="${platform}"></i>`;
+            socialIcons.appendChild(link);
+            lucide.createIcons();
+        }
+    });
+
+    socialIcons.addEventListener('click', (e) => {
+        if (e.target.closest('a')) {
+            e.preventDefault();
+            const link = e.target.closest('a');
+            const newUrl = prompt('Enter the URL for this social media profile:', link.href);
+            if (newUrl) {
+                link.href = newUrl;
+            }
+        }
+    });
+}
+
+function initMenuComponent(component) {
+    const addMenuItemBtn = component.querySelector('#add-menu-item');
+    const menuItems = component.querySelector('#menu-items');
+
+    addMenuItemBtn.addEventListener('click', () => {
+        const li = document.createElement('li');
+        li.innerHTML = '<a href="#" class="text-blue-600" contenteditable="true">New Item</a>';
+        menuItems.appendChild(li);
+    });
+
+    menuItems.addEventListener('click', (e) => {
+        if (e.target.tagName === 'A') {
+            e.preventDefault();
+            const newUrl = prompt('Enter the URL for this menu item:', e.target.href);
+            if (newUrl) {
+                e.target.href = newUrl;
+            }
+        }
+    });
 }
 
 let isDragging = false;
@@ -338,7 +402,9 @@ function selectComponent(component) {
 
 function showProperties(element) {
     const propertiesPanel = document.getElementById('properties-panel');
-    propertiesPanel.innerHTML = `
+    const componentType = element.dataset.componentType;
+
+    let propertiesHTML = `
         <div class="space-y-4">
             <div>
                 <label class="text-sm font-medium text-slate-700">Width</label>
@@ -356,8 +422,19 @@ function showProperties(element) {
                 <label class="text-sm font-medium text-slate-700">Text Color</label>
                 <input type="color" id="text-color-input" class="mt-1 w-full" value="${rgbToHex(element.style.color) || '#000000'}">
             </div>
-        </div>
     `;
+
+    if (componentType === 'Button') {
+        propertiesHTML += `
+            <div>
+                <label class="text-sm font-medium text-slate-700">Button URL</label>
+                <input type="text" id="button-url-input" class="mt-1 w-full px-3 py-2 bg-slate-50 rounded-lg border border-slate-200 focus:outline-none focus:ring-2 focus:ring-blue-500" value="${element.dataset.url || '#'}">
+            </div>
+        `;
+    }
+
+    propertiesHTML += `</div>`;
+    propertiesPanel.innerHTML = propertiesHTML;
 
     document.getElementById('width-input').addEventListener('change', (e) => {
         selectedComponent.style.width = e.target.value;
@@ -374,6 +451,12 @@ function showProperties(element) {
     document.getElementById('text-color-input').addEventListener('change', (e) => {
         selectedComponent.style.color = e.target.value;
     });
+
+    if (componentType === 'Button') {
+        document.getElementById('button-url-input').addEventListener('change', (e) => {
+            selectedComponent.dataset.url = e.target.value;
+        });
+    }
 }
 
 function rgbToHex(rgb) {
