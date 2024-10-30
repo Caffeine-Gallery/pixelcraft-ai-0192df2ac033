@@ -86,6 +86,7 @@ function initAIPanel() {
 function initDragAndDrop() {
     const componentsGrid = document.getElementById('components-grid');
     const canvas = document.getElementById('canvas');
+    const canvasPlaceholder = document.getElementById('canvas-placeholder');
 
     componentsGrid.addEventListener('dragstart', (e) => {
         if (e.target.dataset.component) {
@@ -97,16 +98,23 @@ function initDragAndDrop() {
     canvas.addEventListener('dragover', (e) => {
         e.preventDefault();
         e.dataTransfer.dropEffect = 'copy';
+        canvas.classList.add('drag-over');
+    });
+
+    canvas.addEventListener('dragleave', () => {
+        canvas.classList.remove('drag-over');
     });
 
     canvas.addEventListener('drop', (e) => {
         e.preventDefault();
+        canvas.classList.remove('drag-over');
         const componentType = e.dataTransfer.getData('text');
         if (componentType) {
-            const rect = canvas.getBoundingClientRect();
-            const x = e.clientX - rect.left;
-            const y = e.clientY - rect.top;
+            const canvasRect = canvas.getBoundingClientRect();
+            const x = e.clientX - canvasRect.left;
+            const y = e.clientY - canvasRect.top;
             addComponentToCanvas(componentType, x, y);
+            canvasPlaceholder.style.display = 'none';
         }
     });
 }
@@ -194,8 +202,10 @@ function startResizing(e) {
 
 function resize(e) {
     if (isResizing && selectedComponent) {
-        const width = startWidth + e.clientX - startX;
-        const height = startHeight + e.clientY - startY;
+        const canvas = document.getElementById('canvas');
+        const canvasRect = canvas.getBoundingClientRect();
+        const width = Math.min(startWidth + e.clientX - startX, canvasRect.width - selectedComponent.offsetLeft);
+        const height = Math.min(startHeight + e.clientY - startY, canvasRect.height - selectedComponent.offsetTop);
         selectedComponent.style.width = `${width}px`;
         selectedComponent.style.height = `${height}px`;
     }

@@ -14,3 +14,26 @@
 .component-selected {
     border: 2px solid #3b82f6 !important;
 }
+
+#canvas {
+    position: relative;
+    min-height: 600px;
+    border: 2px dashed #e2e8f0;
+    transition: all 0.3s ease;
+}
+
+#canvas.drag-over {
+    border-color: #3b82f6;
+    background-color: rgba(59, 130, 246, 0.1);
+}
+
+#canvas-placeholder {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    transform: translate(-50%, -50%);
+    text-align: center;
+    color: #94a3b8;
+    font-size: 1.2rem;
+    pointer-events: none;
+}
