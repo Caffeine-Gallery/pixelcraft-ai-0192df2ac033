@@ -88,31 +88,69 @@ function initDragAndDrop() {
     const canvas = document.getElementById('canvas');
 
     componentsGrid.addEventListener('dragstart', (e) => {
-        e.dataTransfer.setData('text/plain', e.target.dataset.component);
+        if (e.target.dataset.component) {
+            e.dataTransfer.setData('text/plain', e.target.dataset.component);
+            e.dataTransfer.effectAllowed = 'copy';
+        }
     });
 
     canvas.addEventListener('dragover', (e) => {
         e.preventDefault();
+        e.dataTransfer.dropEffect = 'copy';
     });
 
     canvas.addEventListener('drop', (e) => {
         e.preventDefault();
         const componentType = e.dataTransfer.getData('text');
-        addComponentToCanvas(componentType, e.clientX, e.clientY);
+        if (componentType) {
+            const rect = canvas.getBoundingClientRect();
+            const x = e.clientX - rect.left;
+            const y = e.clientY - rect.top;
+            addComponentToCanvas(componentType, x, y);
+        }
     });
 }
 
 function addComponentToCanvas(componentType, x, y) {
     const canvas = document.getElementById('canvas');
-    const rect = canvas.getBoundingClientRect();
     const component = document.createElement('div');
-    component.className = 'absolute bg-white border border-slate-200 p-4 rounded-lg shadow-sm';
-    component.style.left = `${x - rect.left}px`;
-    component.style.top = `${y - rect.top}px`;
+    component.className = 'absolute bg-white border border-slate-200 p-4 rounded-lg shadow-sm cursor-move';
+    component.style.left = `${x}px`;
+    component.style.top = `${y}px`;
     component.textContent = componentType;
+    component.draggable = true;
+
+    component.addEventListener('dragstart', (e) => {
+        const rect = component.getBoundingClientRect();
+        const offsetX = e.clientX - rect.left;
+        const offsetY = e.clientY - rect.top;
+        e.dataTransfer.setData('text/plain', JSON.stringify({ type: componentType, offsetX, offsetY }));
+    });
+
     component.addEventListener('click', () => showProperties(component));
     canvas.appendChild(component);
+
+    // Make the component draggable within the canvas
+    component.addEventListener('dragstart', (e) => {
+        const style = window.getComputedStyle(e.target, null);
+        e.dataTransfer.setData("text/plain",
+            (parseInt(style.getPropertyValue("left"),10) - e.clientX) + ',' + (parseInt(style.getPropertyValue("top"),10) - e.clientY));
+    });
 }
+
+canvas.addEventListener('dragover', function(e) { 
+    e.preventDefault(); 
+    return false; 
+});
+
+canvas.addEventListener('drop', function(e) {
+    var offset = e.dataTransfer.getData("text/plain").split(',');
+    var dm = document.getElementById('dragme');
+    dm.style.left = (e.clientX + parseInt(offset[0],10)) + 'px';
+    dm.style.top = (e.clientY + parseInt(offset[1],10)) + 'px';
+    e.preventDefault();
+    return false;
+});
 
 function showProperties(element) {
     const propertiesPanel = document.getElementById('properties-panel');
