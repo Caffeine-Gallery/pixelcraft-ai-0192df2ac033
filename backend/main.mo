@@ -31,6 +31,11 @@ actor {
     stripeWebhookSecret := webhookSecret;
   };
 
+  // Function to get Stripe configuration
+  public query func getStripeConfig() : async {publishableKey : Text} {
+    {publishableKey = stripePublishableKey}
+  };
+
   // Function to get the Stripe publishable key
   public query func getStripePublishableKey() : async Text {
     stripePublishableKey

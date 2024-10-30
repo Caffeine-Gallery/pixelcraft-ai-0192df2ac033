@@ -6,6 +6,7 @@ export interface _SERVICE {
   'createPaymentIntent' : ActorMethod<[bigint, string], string>,
   'getAIAssistance' : ActorMethod<[string], string>,
   'getPaymentIntentStatus' : ActorMethod<[string], [] | [string]>,
+  'getStripeConfig' : ActorMethod<[], { 'publishableKey' : string }>,
   'getStripePublishableKey' : ActorMethod<[], string>,
   'handleStripeWebhook' : ActorMethod<[Uint8Array | number[], string], string>,
   'loadWebsite' : ActorMethod<[], string>,

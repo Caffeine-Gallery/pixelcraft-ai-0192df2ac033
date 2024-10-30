@@ -7,6 +7,11 @@ export const idlFactory = ({ IDL }) => {
         [IDL.Opt(IDL.Text)],
         ['query'],
       ),
+    'getStripeConfig' : IDL.Func(
+        [],
+        [IDL.Record({ 'publishableKey' : IDL.Text })],
+        ['query'],
+      ),
     'getStripePublishableKey' : IDL.Func([], [IDL.Text], ['query']),
     'handleStripeWebhook' : IDL.Func(
         [IDL.Vec(IDL.Nat8), IDL.Text],
